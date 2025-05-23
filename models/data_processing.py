@@ -1,4 +1,4 @@
-# COVID-19 Trend Analysis Project
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,7 +33,7 @@ def preprocess_jhu_data(df, case_type):
     
     return df_grouped
 
-# dataset loading 
+
 confirmed_long = preprocess_jhu_data(df_confirmed, 'Confirmed')
 deaths_long = preprocess_jhu_data(df_deaths, 'Deaths')
 recovered_long = preprocess_jhu_data(df_recovered, 'Recovered')
@@ -41,19 +41,19 @@ recovered_long = preprocess_jhu_data(df_recovered, 'Recovered')
 covid_data = confirmed_long.merge(deaths_long, on=['Country/Region', 'Date'])
 covid_data = covid_data.merge(recovered_long, on=['Country/Region', 'Date'])
 
-# active cases
+
 covid_data['Active'] = covid_data['Confirmed'] - covid_data['Deaths'] - covid_data['Recovered']
 
-#  daily new cases, deaths, and recoveries
+
 covid_data['New_Confirmed'] = covid_data.groupby('Country/Region')['Confirmed'].diff().fillna(0)
 covid_data['New_Deaths'] = covid_data.groupby('Country/Region')['Deaths'].diff().fillna(0)
 covid_data['New_Recovered'] = covid_data.groupby('Country/Region')['Recovered'].diff().fillna(0)
 
-#  7-day moving averages
+
 covid_data['MA7_New_Confirmed'] = covid_data.groupby('Country/Region')['New_Confirmed'].rolling(7).mean().reset_index(level=0, drop=True).fillna(0)
 covid_data['MA7_New_Deaths'] = covid_data.groupby('Country/Region')['New_Deaths'].rolling(7).mean().reset_index(level=0, drop=True).fillna(0)
 
-# Calculate growth rates (day-over-day percent change)
+
 covid_data['Growth_Rate_Confirmed'] = covid_data.groupby('Country/Region')['Confirmed'].pct_change().fillna(0) * 100
 
 print(f"Data processed. Dataset contains {len(covid_data['Country/Region'].unique())} countries from {covid_data['Date'].min().strftime('%Y-%m-%d')} to {covid_data['Date'].max().strftime('%Y-%m-%d')}")
@@ -151,16 +151,16 @@ total_cases = covid_data.groupby('Country/Region')['Confirmed'].max()
 significant_countries = total_cases[total_cases > 1000].index
 features_data = features_data[features_data.index.isin(significant_countries)]
 
-# Standardize the data
+
 scaler = StandardScaler()
 features_scaled = scaler.fit_transform(features_data)
 
-# Apply KMeans clustering
-n_clusters = 4  # Number of clusters to create
+
+n_clusters = 4 
 kmeans = KMeans(n_clusters=n_clusters, random_state=42)
 clusters = kmeans.fit_predict(features_scaled)
 
-# Add cluster information back to the original data
+
 cluster_mapping = pd.DataFrame({'Country/Region': features_data.index, 'Cluster': clusters})
 covid_data_with_clusters = covid_data.merge(cluster_mapping, on='Country/Region', how='left')
 
@@ -180,7 +180,7 @@ plt.grid(True, linestyle='--', alpha=0.7)
 plt.tight_layout()
 plt.savefig('country_clusters.png')
 
-# PART 6: GENERATE FINAL REPORT
+
 print("\nGenerating final report...")
 print("Analysis complete! Results saved as images and HTML files.")
 print("\nSummary of findings:")

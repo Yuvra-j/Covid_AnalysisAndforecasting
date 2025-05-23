@@ -1,4 +1,4 @@
-# COVID-19 Interactive Dashboard with Streamlit
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import os
 from forecasting_models import run_forecasting_models
 
-# Set page configuration
+
 st.set_page_config(
     page_title="COVID-19 Analysis Dashboard",
     page_icon="🦠",
@@ -18,7 +18,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Add custom CSS
+
 st.markdown("""
     <style>
     .main-header {
@@ -85,7 +85,7 @@ st.markdown("""
 def load_data():
     """Load and prepare the data for the dashboard"""
     try:
-        # Load processed data - adjust path as needed
+        
         df = pd.read_csv("C:/Users/Yuvraj/Desktop/covid_analysis_report/data/processed/processed_covid_data.csv")
         df['Date'] = pd.to_datetime(df['Date'])
         
@@ -100,13 +100,13 @@ def load_data():
         return df, forecasts
     except Exception as e:
         st.error(f"Error loading data: {e}")
-        # Return empty DataFrames if loading fails
+        
         return pd.DataFrame(), pd.DataFrame()
 
-# Load the data
+
 covid_data, forecast_data = load_data()
 
-# Header
+
 st.markdown("<h1 class='main-header'>COVID-19 Analysis Dashboard</h1>", unsafe_allow_html=True)
 st.markdown("""
     <div style='text-align: center; color: #424242; margin-bottom: 2rem;'>
@@ -114,12 +114,12 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Sidebar - Controls
+
 with st.sidebar:
     st.markdown("### 📊 Dashboard Controls")
     st.markdown("---")
     
-    # Country selection
+    
     if not covid_data.empty:
         countries = sorted(covid_data['Country/Region'].unique())
         default_countries = ['US', 'India', 'Brazil', 'UK', 'France'] if len(countries) >= 5 else countries[:5]
@@ -136,7 +136,7 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # Metric selection
+    
     metric_options = {
         'Confirmed': 'Total Confirmed Cases',
         'Deaths': 'Total Deaths',
@@ -154,7 +154,7 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # Date range selection
+    
     if not covid_data.empty:
         min_date = covid_data['Date'].min().date()
         max_date = covid_data['Date'].max().date()
@@ -180,14 +180,14 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # Forecast model selection
+    
     forecast_models = st.multiselect(
         "🔮 Select Forecast Models",
         options=['ARIMA', 'Prophet', 'LSTM'],
         default=['ARIMA']
     )
 
-# Filter data based on selections
+
 @st.cache_data
 def filter_data(data, countries, start, end):
     """Filter the data based on selected countries and date range"""
@@ -201,10 +201,10 @@ def filter_data(data, countries, start, end):
     ]
     return filtered
 
-# Apply filters to the data
+
 filtered_data = filter_data(covid_data, selected_countries, start_date, end_date)
 
-# Main dashboard tabs
+
 tab1, tab2, tab3, tab4 = st.tabs([
     "📈 Trend Analysis",
     "🔮 Forecasting",
@@ -212,12 +212,12 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "🗺️ Geographic View"
 ])
 
-# Tab 1: Trend Analysis
+
 with tab1:
     st.markdown("<h2 class='sub-header'>COVID-19 Trends by Country</h2>", unsafe_allow_html=True)
     
     if not filtered_data.empty:
-        # Line chart for selected metric
+        
         fig = px.line(
             filtered_data, 
             x='Date', 
@@ -228,7 +228,7 @@ with tab1:
             template='plotly_white'
         )
         
-        # Enhance the figure
+        
         fig.update_layout(
             legend_title_text='Country',
             xaxis_title='Date',
@@ -240,21 +240,21 @@ with tab1:
         
         st.plotly_chart(fig, use_container_width=True)
         
-        # Comparative Analysis
+        
         st.markdown("<h2 class='sub-header'>Comparative Analysis</h2>", unsafe_allow_html=True)
         
-        # Get latest data for selected countries
+        
         latest_data = filtered_data.groupby('Country/Region').last().reset_index()
         
         if not latest_data.empty:
-            # Create subplot with multiple metrics
+            
             comp_fig = make_subplots(
                 rows=1, cols=2,
                 subplot_titles=('Total Confirmed Cases', 'Case Fatality Rate (%)'),
                 specs=[[{"type": "bar"}, {"type": "bar"}]]
             )
             
-            # Add total cases bar chart
+            
             comp_fig.add_trace(
                 go.Bar(
                     x=latest_data['Country/Region'], 
@@ -265,7 +265,7 @@ with tab1:
                 row=1, col=1
             )
             
-            # Calculate and add CFR bar chart
+            
             latest_data['CFR'] = (latest_data['Deaths'] / latest_data['Confirmed']) * 100
             comp_fig.add_trace(
                 go.Bar(
@@ -290,7 +290,7 @@ with tab1:
     else:
         st.warning("No data available for the selected countries and date range.")
 
-# Tab 2: Forecasting
+
 with tab2:
     st.markdown("<h2 class='sub-header'>COVID-19 Forecasts</h2>", unsafe_allow_html=True)
     
@@ -299,22 +299,22 @@ with tab2:
     else:
         selected_country = selected_countries[0]
         
-        # Get historical data for selected country
+        
         country_data = covid_data[covid_data['Country/Region'] == selected_country]
         
         if country_data.empty:
             st.warning(f"No historical data found for {selected_country}.")
         else:
-            # Run forecasting models if selected
+            
             if forecast_models:
                 try:
                     with st.spinner('Generating forecasts... This may take a few minutes.'):
                         forecast_results = run_forecasting_models(country=selected_country, forecast_days=30)
                     
-                    # Create figure with historical data
+                    
                     fig = go.Figure()
                     
-                    # Add historical data
+                    
                     fig.add_trace(go.Scatter(
                         x=country_data['Date'],
                         y=country_data['MA7_New_Confirmed'],
@@ -323,7 +323,7 @@ with tab2:
                         line=dict(color='#424242', width=2)
                     ))
                     
-                    # Add forecasts
+                    
                     colors = {'ARIMA': '#1E88E5', 'Prophet': '#43A047', 'LSTM': '#E53935'}
                     available_models = []
                     
@@ -342,7 +342,7 @@ with tab2:
                     if not available_models:
                         st.warning("No forecast models were able to generate predictions. Please try again later.")
                     else:
-                        # Update layout
+                        
                         fig.update_layout(
                             title=f'COVID-19 Forecast for {selected_country}',
                             xaxis_title='Date',
@@ -353,17 +353,17 @@ with tab2:
                             paper_bgcolor='rgba(0,0,0,0)'
                         )
                         
-                        # Add vertical line separating historical data from forecasts
+                        
                         last_date = country_data['Date'].max()
                         fig.add_vline(x=last_date, line_width=1, line_dash="dash", line_color="gray")
                         
                         st.plotly_chart(fig, use_container_width=True)
                         
-                        # Model Comparison
+                        
                         if len(available_models) > 1:
                             st.markdown("<h2 class='sub-header'>Forecast Model Comparison</h2>", unsafe_allow_html=True)
                             
-                            # Extract error metrics if they exist
+                            
                             st.write("Model Performance Metrics:")
                             
                             metrics_cols = st.columns(len(available_models))
@@ -375,7 +375,7 @@ with tab2:
                                         delta="MAPE: Not available"
                                     )
                                     
-                            # Description of models
+                            
                             st.markdown("""
                             **Model Descriptions:**
                             - **ARIMA**: Statistical time-series forecasting model that uses past values and errors
@@ -387,18 +387,18 @@ with tab2:
             else:
                 st.info("Please select at least one forecasting model from the sidebar.")
 
-# Tab 3: Statistics
+
 with tab3:
     st.markdown("<h2 class='sub-header'>Key COVID-19 Statistics</h2>", unsafe_allow_html=True)
     
     if not filtered_data.empty:
-        # Get latest data
+        
         latest_global = filtered_data.groupby('Date').sum().reset_index().iloc[-1]
         latest_by_country = filtered_data.groupby(['Country/Region', 'Date']).sum().reset_index()
         latest_by_country = latest_by_country.sort_values('Date').groupby('Country/Region').last()
         latest_by_country['CFR'] = (latest_by_country['Deaths'] / latest_by_country['Confirmed']) * 100
         
-        # Display key metrics
+        
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
@@ -434,7 +434,7 @@ with tab3:
                 </div>
             """.format(avg_cfr), unsafe_allow_html=True)
             
-        # Country Rankings
+        
         st.markdown("<h2 class='sub-header'>Country Rankings</h2>", unsafe_allow_html=True)
         
         rank_metric = st.selectbox(
@@ -447,7 +447,7 @@ with tab3:
         top_n = st.slider("Number of countries to show:", min_value=5, max_value=20, value=10)
         
         if rank_metric == 'CFR':
-            # Calculate CFR for ranking
+           
             ranked_countries = latest_by_country.sort_values('CFR', ascending=False).head(top_n)
             y_values = ranked_countries['CFR']
             y_title = 'Case Fatality Rate (%)'
@@ -456,7 +456,7 @@ with tab3:
             y_values = ranked_countries[rank_metric]
             y_title = metric_options.get(rank_metric, rank_metric)
         
-        # Create rank chart
+        
         rank_fig = px.bar(
             x=ranked_countries.index,
             y=y_values,
@@ -472,11 +472,11 @@ with tab3:
         
         st.plotly_chart(rank_fig, use_container_width=True)
         
-        # Growth Rate Analysis
+       
         st.markdown("<h2 class='sub-header'>Growth Rate Analysis</h2>", unsafe_allow_html=True)
         
         if len(selected_countries) > 0:
-            # Calculate weekly growth rate
+           
             growth_data = filtered_data.copy()
             growth_data['Week'] = growth_data['Date'].dt.isocalendar().week
             growth_data['Year'] = growth_data['Date'].dt.isocalendar().year
@@ -487,7 +487,7 @@ with tab3:
             weekly_data['WeeklyGrowth'] = (weekly_data['Confirmed'] - weekly_data['PrevConfirmed']) / weekly_data['PrevConfirmed'] * 100
             weekly_data = weekly_data.dropna()
             
-            # Create growth rate chart
+           
             growth_fig = px.line(
                 weekly_data,
                 x='WeekYear',
@@ -510,19 +510,19 @@ with tab3:
     else:
         st.warning("No data available for the selected date range and countries.")
 
-# Tab 4: Geographic View
+
 with tab4:
     st.markdown("<h2 class='sub-header'>Global Distribution</h2>", unsafe_allow_html=True)
     
     if not covid_data.empty:
-        # Get latest data for all countries
+       
         latest_date = covid_data['Date'].max()
         map_data = covid_data[covid_data['Date'] == latest_date]
         
-        # Calculate CFR
+       
         map_data['CFR'] = (map_data['Deaths'] / map_data['Confirmed']) * 100
         
-        # Select map metric
+        
         map_metric = st.selectbox(
             "Select map metric:",
             options=['Confirmed', 'Deaths', 'CFR', 'MA7_New_Confirmed'],
@@ -530,7 +530,7 @@ with tab4:
                                   'CFR': 'Case Fatality Rate', 'MA7_New_Confirmed': 'New Cases (7-day MA)'}[x]
         )
         
-        # Create choropleth map
+        
         color_scale = 'Reds' if map_metric in ['Confirmed', 'Deaths', 'MA7_New_Confirmed'] else 'RdBu'
         map_fig = px.choropleth(
             map_data,
@@ -551,17 +551,17 @@ with tab4:
         
         st.plotly_chart(map_fig, use_container_width=True)
         
-        # Add map data table
+        
         st.markdown("<h2 class='sub-header'>Data Table</h2>", unsafe_allow_html=True)
         
-        # Select columns to display
+        
         display_cols = ['Country/Region', 'Confirmed', 'Deaths', 'Active', 'CFR', 'MA7_New_Confirmed']
         display_map_data = map_data[display_cols].sort_values('Confirmed', ascending=False)
         
-        # Format CFR as percentage
+        
         display_map_data['CFR'] = display_map_data['CFR'].round(2).astype(str) + '%'
         
-        # Rename columns for display
+        
         display_map_data = display_map_data.rename(columns={
             'Country/Region': 'Country',
             'Confirmed': 'Total Cases',
@@ -575,7 +575,7 @@ with tab4:
     else:
         st.warning("No geographic data available.")
 
-# Footer
+
 st.markdown(f"""
 <div class='footer'>
 COVID-19 Data Analysis Dashboard<br>

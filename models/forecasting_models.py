@@ -1,4 +1,4 @@
-# COVID-19 Predictive Modeling
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -86,33 +86,33 @@ def forecast_with_prophet(country_data, forecast_days=30):
     print(f"Forecasting with Prophet for {forecast_days} days ahead...")
     
     try:
-        # Prepare data
+        
         prophet_data = country_data[['Date', 'MA7_New_Confirmed']].rename(
             columns={'Date': 'ds', 'MA7_New_Confirmed': 'y'})
         
-        # Remove any negative values
+        
         prophet_data['y'] = prophet_data['y'].clip(lower=0)
         
-        # Create and fit the model with minimal configuration
+        
         model = Prophet(
             interval_width=0.95,
             daily_seasonality=False,
             weekly_seasonality=True,
             yearly_seasonality=False,
             seasonality_mode='additive',
-            changepoint_prior_scale=0.01,  # Less flexible trend
-            seasonality_prior_scale=0.1,   # Less seasonality
+            changepoint_prior_scale=0.01,  
+            seasonality_prior_scale=0.1,   
             changepoint_range=0.8
         )
         
-        # Fit the model
+       
         model.fit(prophet_data)
         
-        # Create future dataframe for predictions
+        
         future = model.make_future_dataframe(periods=forecast_days)
         forecast = model.predict(future)
         
-        # Get only the forecast period
+       
         forecast_df = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail(forecast_days)
         forecast_df = forecast_df.rename(columns={
             'ds': 'Date',
@@ -217,7 +217,7 @@ def forecast_with_lstm(country_data, forecast_days=30, look_back=14):
         'Forecast': future_predictions.flatten()
     })
     
-    # Plot the results
+    
     plt.figure(figsize=(12, 6))
     plt.plot(country_data['Date'][-60:], country_data['MA7_New_Confirmed'][-60:], label='Historical Data')
     plt.plot(forecast_df['Date'], forecast_df['Forecast'], label='LSTM Forecast', color='red')
@@ -287,21 +287,21 @@ def run_forecasting_models(country='US', forecast_days=30):
     forecast_days (int): Number of days to forecast
     """
     try:
-        # Load data
+        
         covid_data = load_and_prepare_data()
         country_data = covid_data[covid_data['Country/Region'] == country].copy()
         print(f"Running forecasting models for {country} with {len(country_data)} data points")
 
-        # Initialize forecast results dictionary
+       
         forecast_results = {}
         
-        # Create forecast dates
+        
         forecast_dates = pd.date_range(
             start=country_data['Date'].max() + pd.Timedelta(days=1),
             periods=forecast_days
         )
         
-        # Run ARIMA
+        
         try:
             arima_forecast = forecast_with_arima(country_data, forecast_days)
             forecast_results['ARIMA_Forecast'] = arima_forecast['Forecast'].values
@@ -309,7 +309,7 @@ def run_forecasting_models(country='US', forecast_days=30):
             print(f"Error in ARIMA forecasting: {str(e)}")
             forecast_results['ARIMA_Forecast'] = np.full(forecast_days, np.nan)
         
-        # Run Prophet
+        
         try:
             prophet_forecast = forecast_with_prophet(country_data, forecast_days)
             forecast_results['Prophet_Forecast'] = prophet_forecast['Forecast'].values
@@ -317,7 +317,7 @@ def run_forecasting_models(country='US', forecast_days=30):
             print(f"Error in Prophet forecasting: {str(e)}")
             forecast_results['Prophet_Forecast'] = np.full(forecast_days, np.nan)
         
-        # Run LSTM
+        
         try:
             lstm_forecast = forecast_with_lstm(country_data, forecast_days)
             forecast_results['LSTM_Forecast'] = lstm_forecast['Forecast'].values
@@ -325,13 +325,13 @@ def run_forecasting_models(country='US', forecast_days=30):
             print(f"Error in LSTM forecasting: {str(e)}")
             forecast_results['LSTM_Forecast'] = np.full(forecast_days, np.nan)
         
-        # Create combined forecast DataFrame
+        
         combined_forecast = pd.DataFrame({
             'Date': forecast_dates,
             **forecast_results
         })
         
-        # Save combined forecasts
+        
         combined_forecast.to_csv('combined_forecasts.csv', index=False)
         
         print("Forecasting complete! Results saved to files.")
@@ -339,7 +339,7 @@ def run_forecasting_models(country='US', forecast_days=30):
         
     except Exception as e:
         print(f"Error in run_forecasting_models: {str(e)}")
-        # Return empty DataFrame with correct structure
+    
         return pd.DataFrame({
             'Date': pd.date_range(
                 start=datetime.now(),
